@@ -19,7 +19,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 
 
-    <script src="reactrb-express.min.js"></script>
+    <script src="https://rawgit.com/ruby-hyperloop/hyperloop-js/master/opal-compiler.min.js"></script>
+    <script src="https://rawgit.com/ruby-hyperloop/hyperloop-js/master/hyperloop.min.js"></script>
     
 
     <script src="codemirror.js"></script>
@@ -39,7 +40,7 @@
       <script type="text/ruby">
 
         class CodeMirror < Hyperloop::Component
-          param :code, type: String
+          param :code
           param :heading, default: "Code"
           param :rows, type: Integer, default: 0
           param :top_level_component, type: String
@@ -51,15 +52,18 @@
           end
 
           after_mount do
-          puts params.code
+
+            
             @editor = `CodeMirror(document.getElementById(#{@div_code}), {
-              value: #{params.code},
+              value: #{params.code.to_s},
               mode: 'text/x-ruby',
               matchBrackets: true,
               lineNumbers: true,
               indentUnit: 2,
               theme: 'github'
             });`
+
+
 
             `#{@editor}.on('change', #{lambda {on_change} })`
             `#{@editor}.setSize(null, #{@editor}.defaultTextHeight()*#{params.rows})` unless params.rows == 0
@@ -85,9 +89,10 @@
           def execute_code
             begin
               code = `#{@editor}.getValue()`
-              puts code
+              
               code += "\nElement['##{@div_result}'].render(#{params.top_level_component})"
               compiled_code = Opal::Compiler.new(code).compile
+              Hyperloop::Context.reset!
               `ReactDOM.unmountComponentAtNode(document.getElementById(#{@div_result}));`
               `eval(#{compiled_code})`
               component = Module.const_get params.top_level_component
@@ -152,12 +157,23 @@
   <div class="codemirror-live-edit"
   data-heading="A simple Component rendering a Button"
   data-rows=9
-  data-top-level-component="SimpleComponent">
+  data-top-level-component="OfferLuckyDip">
   <pre>
-  class SimpleComponent < Hyperloop::Component
-    render(DIV) do
-      BUTTON { 'Push the button' }.on(:click) do
-       alert 'You did it!'
+  class Discounter < Hyperloop::Store
+     state discount: 50, scope: :class, reader: true
+
+    def self.lucky_dip!
+      mutate.discount( state.discount + rand(-5..5) )
+    end
+  end
+
+  class OfferLuckyDip < Hyperloop::Component
+    def render
+      DIV do
+        H1 {"Your discount is #{Discounter.discount}%"}
+        BUTTON { "Lucky Dip" }.on(:click) do
+          Discounter.lucky_dip!
+        end
       end
     end
   end
