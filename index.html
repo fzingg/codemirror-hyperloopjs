@@ -19,8 +19,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 
 
-    <script src="https://rawgit.com/ruby-hyperloop/hyperloop-js/master/opal-compiler.min.js"></script>
-    <script src="https://rawgit.com/ruby-hyperloop/hyperloop-js/master/hyperloop.min.js"></script>
+    <script src="reactrb-express.js"></script>
     
 
     <script src="codemirror.js"></script>
@@ -92,7 +91,7 @@
               
               code += "\nElement['##{@div_result}'].render(#{params.top_level_component})"
               compiled_code = Opal::Compiler.new(code).compile
-              Hyperloop::Context.reset!
+              
               `ReactDOM.unmountComponentAtNode(document.getElementById(#{@div_result}));`
               `eval(#{compiled_code})`
               component = Module.const_get params.top_level_component
@@ -160,23 +159,24 @@
   data-top-level-component="OfferLuckyDip">
   <pre>
   class Discounter < Hyperloop::Store
-     state discount: 50, scope: :class, reader: true
+   state discount:30, scope: :class, reader: true
 
-    def self.lucky_dip!
-      mutate.discount( state.discount + rand(-5..5) )
-    end
+  def self.lucky_dip!
+    mutate.discount( 30 + rand(-5..5) )
   end
+end
 
-  class OfferLuckyDip < Hyperloop::Component
-    def render
-      DIV do
-        H1 {"Your discount is #{Discounter.discount}%"}
-        BUTTON { "Lucky Dip" }.on(:click) do
-          Discounter.lucky_dip!
-        end
+class OfferLuckyDip < Hyperloop::Component
+
+  def render
+    DIV do
+      H1 {"Your discount is #{Discounter.discount}%"}
+      BUTTON { "Lucky Dip" }.on(:click) do
+        Discounter.lucky_dip!
       end
     end
   end
+end
   </pre></div>
 
 
