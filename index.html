@@ -19,7 +19,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
 
 
-    <script src="reactrb-express.js"></script>
+     <script src="https://rawgit.com/ruby-hyperloop/hyperloop-js/master/opal-compiler.min.js"></script>
+    <script src="https://rawgit.com/ruby-hyperloop/hyperloop-js/master/hyperloop.min.js"></script>
     
 
     <script src="codemirror.js"></script>
@@ -88,12 +89,13 @@
           def execute_code
             begin
               code = `#{@editor}.getValue()`
-              
+              Hyperloop::Context.reset!
               code += "\nElement['##{@div_result}'].render(#{params.top_level_component})"
               compiled_code = Opal::Compiler.new(code).compile
               
               `ReactDOM.unmountComponentAtNode(document.getElementById(#{@div_result}));`
               `eval(#{compiled_code})`
+              Hyperloop::Application::Boot.run
               component = Module.const_get params.top_level_component
               # we need to see if the component is valid - try checking if it can render static markup
               # the following line generates: `undefined method to_n for SimpleComponent`
@@ -159,7 +161,7 @@
   data-top-level-component="OfferLuckyDip">
   <pre>
   class Discounter < Hyperloop::Store
-   state discount:30, scope: :class, reader: true
+   state discount:40, scope: :class, reader: true
 
   def self.lucky_dip!
     mutate.discount( 30 + rand(-5..5) )
@@ -190,7 +192,9 @@ end
 
     <!-- <script   src="http://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script> -->
 
-    <script type="text/ruby">puts "Hyperloop Express ok"</script>
+    <script type="text/ruby">
+      
+    puts "Hyperloop Express ok"</script>
 
   </body>
 </html>
